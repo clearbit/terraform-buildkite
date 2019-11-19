@@ -281,7 +281,23 @@ type repositoryProvider struct {
 	WebhookURL           string
 }
 
-var providerSettingsExcluded = [...]string{"repository", "account"}
+var providerSettingsExcluded = [...]string{"repository", "account", "commit_status_404s"}
+var providerSettingsIncluded = [...]string{
+	"trigger_mode",
+	"build_pull_requests",
+	"pull_request_branch_filter_enabled",
+	"pull_request_branch_filter_configuration",
+	"skip_builds_for_existing_commits",
+	"skip_pull_request_builds_for_existing_commits",
+	"build_pull_request_forks",
+	"filter_enabled",
+	"prefix_pull_request_fork_branch_names",
+	"build_tags",
+	"publish_commit_status",
+	"publish_commit_status_per_step",
+	"publish_blocked_as_pending",
+	"separate_pull_request_statuses",
+}
 
 func (p repositoryProvider) MarshalJSON() ([]byte, error) {
 	// We only need to Unmarshall from the API
@@ -303,11 +319,13 @@ func (p *repositoryProvider) UnmarshalJSON(data []byte) error {
 
 	settings := provider["settings"].(map[string]interface{})
 
-	for _, k := range providerSettingsExcluded {
+	keep := map[string]interface{}{}
+	for _, k := range providerSettingsIncluded {
 		delete(settings, k)
+		keep[k] = settings[k]
 	}
 
-	p.Settings = settings
+	p.Settings = keep
 
 	return nil
 }
